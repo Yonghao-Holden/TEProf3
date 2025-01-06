@@ -35,8 +35,6 @@ import process_assemble
 import filter_transcripts
 import process_meta_assemble
 import quantification
-import translation
-import find_neoantigen_candidates
 
 def main():
 	## step 1. mark program start time for reference
@@ -57,37 +55,6 @@ def main():
 
 	if flags.test==True:
 		input_dataset = quantification.quantification(input_dataset, flags)
-		exit()
-
-	## collect mRNA sequences and perform in silico translation
-	if flags.teprof2 != "no":
-		translation.start_translation(flags.teprof2, flags)
-		exit()
-	if flags.translation != "no":
-		translation.start_translation(flags.translation, flags, version)
-		exit()
-
-	## identify neoantigen candidates
-	if flags.split != "no":
-		find_neoantigen_candidates.run_split_on_sbatch_cluster(flags.split)
-		exit()
-	if flags.blastp != "no":
-		find_neoantigen_candidates.run_blastp_on_sbatch_cluster(flags.blastp, flags.blastpdatabase, flags.taxiddb, flags.blastjobnum)
-		exit()
-	if flags.blastpshort != "no":
-		find_neoantigen_candidates.run_blastp_short_on_sbatch_cluster(flags.blastpshort, flags.blastpdatabase, flags.taxiddb, flags.blastjobnum)
-		exit()
-	if flags.classify != "no":
-		find_neoantigen_candidates.classify_protein_products(flags.classify)
-		exit()
-	if flags.detectedprotein == True:
-		find_neoantigen_candidates.detected_protein()
-		exit()
-	if flags.parsenetmhcpan != "no":
-		find_neoantigen_candidates.parse_netmhcpan(flags.parsenetmhcpan)
-		exit()
-	if flags.neoantigen == True:
-		find_neoantigen_candidates.get_neoantigen_candidates()
 		exit()
 
 	## run teprof3 on gdc files
