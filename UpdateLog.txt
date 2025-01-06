@@ -1,0 +1,177 @@
+Update log:
+v1.0.0: 
+1. call 4 classes of TE-derived trnascripts (TE coding gene, TE noncoding gene, TE no gene and TE transcripts)
+
+v2.0.0: (20230605)
+1. finish translation
+2. include mono-exonic TE-derived transcripts
+3. output statistic file at the end of teprof3
+4. intersect with HERV database to collect HERV transcripts
+5. include annotated transcripts (ones that have exon1 overlap with exon1, but the annotated TSS is in the same TE copy)
+
+v2.0.1: (20230605)
+1. add gene_transcript_type_number to sorting, so pick coding gene first over non-coding, over pseudo, over problem; and add number of overlap bases to pick the one with highest overlap: exon_gene_panda_temp = exon_gene_panda_temp.sort_values(by=["gene_transcript_type_number", 'corrected_exon_number_clean','gene_exon_number_clean','distance_between_stringtie_tss_and_annotated_tss', 'overlap_between_stringtie_exon_and_annotated_exon'], ascending=[True,True,True,True,False])
+
+v2.0.2: (20230606)
+1. duplicates in the quantification table
+2. prepDE sample_list prep bug fix.
+
+v2.1.0: (20230609)
+1. speed up get_percentage_of_expression step.
+2. filter out transcripts from simple repeats and make them optional. (by default, remove simple repeat-derived transcripts to increase sensitivity to TE-derived transcripts)
+
+v2.1.1: (20230609)
+1. change TACO cutoff from 0.5 FPKM to 0.5 TPM
+2. change processtpm default setting from 1 to 0.5 TPM
+3. change filterdownstreammate default setting from 3 to 2
+
+v2.1.2: (20230612)
+1. change filtermonoexontpm default setting from 2 to 1 TPM
+2. input_row["SJ_uniqlymapped_read_upstream"]+input_row["SJ_multimapped_read_upstream"]) <= input_row["perfect_SJ_uniqlymapped_read_downstream"] * ratio_of_upstream_and_downstream_mates change to input_row["SJ_uniqlymapped_read_upstream"]+input_row["SJ_multimapped_read_upstream"]) < input_row["perfect_SJ_uniqlymapped_read_downstream"] * ratio_of_upstream_and_downstream_mates
+3. print command used for running teprof3 to the debug folder
+
+v2.1.3: (20230613)
+1. add function to parse .json file to generate manifest file process GDC data
+2. optimize codes for intersecting with SJ file to process GDC data
+3. intersect with full length LINE1 annotation to collect LINE1 associated transcripts
+
+v2.1.4: (20230616)
+1. optimize codes for intersecting with SJ file to process GDC data
+2. change TACO --filter-min-length from default (200bp) to use flags.assemblelength (100bp)
+
+v2.1.5: (20230618)
+1. change default setting of flags.assemblelength to 200bp (the specificity is so much worse)
+
+v2.1.6: (20230629)
+1. fix bug in translation: if there's N in mRNA sequence, remove this ORF
+2. include blastp database setting (two options, gene and nr)
+3. check if there's strandness information in the input gtf file. If there's no strandness information, stop the pipeline and raise error.
+4. enable guided mode (teprof3 --f sample.txt --guided longread_taco.gtf)
+5. optimize function to parse .json file to generate manifest file process GDC data
+6. reset folder structure if it errors out
+
+v2.2.0: (20230721)
+1. optimize quantification step [in v2.1, quantification of TE-derived transcript was done using TACO + gene annotation (ie. cat TACO.output.gtf gencode.gtf > quantification.gtf). There were two issues of doing this, (1) for annotated TE-derived transcripts (where TE-derived transcripts share the exact same intron structure as annotated transcripts), because there's a duplicated transcript in the gene annotation, expression of TE-derived transcripts will be under-estimated. Thus, i'm removing the duplicated transcript from gene annotation. (2) if we don't include transcripts that's specific in each sample (not annoated and not in TACO), we will have error quantifying transcripts] => thus, now we are using the following transcript assembly for quantification (TACO output + gene annotation (exclude duplicates) + non-TE transcripts from each sample (exclude mono-exonic transcripts, exclude transcripts with same intron chain as gene annotation and TACO)) (TE-derived transcripts removed during filtering are removed forever, won't be used in quantification) => but i don't want to do anything do gene annotation. So, gene annotation is using the raw input.
+2. LR support breaks into 2 parts, one is looking for evidence for novel SJ (change the column name), the other is looking for evidence for the whole transcript.
+3. add a --samplenumber flag to change samplenumber for all steps
+4. change annotated labels to indicate whether exon1 overlaps with annotated exon1
+5. for function SR_quantification_collect_data, make this process 50 samples at a time to avoid using too much memory (eg, 236 samples takes 63% mem on bluemoon)
+6. for transcript_coordinates column, now, the order goes from small to large instead of following the oder of exon number
+
+v2.2.1: (20230721)
+1. typo in the teprof3_output_transcript_statistic.tsv file.
+2. fix LR support count bug in teprof3_output_transcript_statistic.tsv.
+
+v2.2.2: (20230817)
+1. fix an deleterious bug from v2.2.1 that missed a substantial amount of TE-derived transcripts.
+
+v2.2.3: (20230828)
+1. remove duplicates in the output quantification table.
+2. when using filter mode 2 (SR+LR), will include information of LR support in each sample for each transcript in the quantification table.
+3. only keep TACO (TU) transcripts in the quantification table.
+
+v2.2.4: (20230829)
+1. add blastp-short to the translation script to run blastp for detected peptides.
+2. make v2.2.3 update 2 faster.
+
+v2.2.5: (20230906)
+1. optimize blastp settings.
+2. add assemble mode 2 and 3 to the scripts.
+
+v2.2.6: (20230917)
+1. fix bug introduced from v2.2.0, which removed all multi-exonic TE-derived transcripts with strand "-".
+2. add find_neoantigen_candidates.py modality. 
+
+v2.2.7: (20240202)
+1. There are duplicated transcripts from TACO output (ie, they share the same intron chain, but with different transcription termination sites). This version TEProf3 will deduplicate them and keep the transcript with the longest length.
+2. Find the correct transcript ID that TE splice into. Prioritize the transcript with exact same intron chain.
+3. Add a new column in the quantification table (SR_novel_junction_support) to help determine the presence of each transcript in each sample. (in Shah et al. 2023, they used 1TPM and 1 junction_support as cut off to determine the presence of each transcript).
+4. In previous versions, we use the chimeric gene reference (Gencode + TACO + sample-specific non-TE-derived transcripts for stringtie quantification). This can help to eliminate false positive for quantification of TE-derived transcripts. However, it will cause trouble for differential expression analysis, as different reference is used for different sample. And now, we can use the SR_novel_junction_support to help diminish false positive TE-derived transcripts. So, we will switch back to use the chimeric gene reference (Gencode + TACO) for quantification. 
+5. add --length flag to prepDE.py command. (https://ccb.jhu.edu/software/stringtie/index.shtml?t=manual)
+6. update the teprof3.yml file with seaborn, matplotlib.
+7. change output file names so they are easier to understand.
+
+v2.2.8: (20240213)
+1. Add one more column to the quantification table to include information of reads splicing from upstream, so we can distinguish TE-derived transcripts that are just part of a longer transcripts, instead of a real transcript. 
+
+v2.3.0: (20240215)
+1. Fix the error from v2.2.8 edits and convert these two columns (perfect_SJ_uniqlymapped_read_downstream, SJ_uniqlymapped_read_upstream) to int in the quantification table.
+
+v3.0.0: (20240223)
+1. Because the quantification tables take up significant storage space, gzip them at the end of the pipeline.
+2. Fix minor bug in counting upstream and downstream chimeric mates.
+
+v3.0.1: (20240402)
+1. When check whether provided gtf files have the strandness information, output file names which don't have the strandness information. Help to identify the problematic gtf files.
+2. Edit prepare_ref.py so we can take in gene annotation from ensembl.
+3. Add `os.environ['NUMEXPR_MAX_THREADS'] = '4'`, `os.environ['NUMEXPR_NUM_THREADS'] = '2'` to the script.
+
+v3.0.2: (20240404)
+1. Use pd.copy() when making a copy of a pandas dataframe. 
+2. Add a flag, `-ptn` or `--processtranscriptnumber`. Default is 100. Usually, samples with less than 100 TE-derived transcripts, especially in cancer samples, are suffering from severe 3' bias due to RNA degradation or library preparation method that was used. 
+3. Check if there's any perfect_SJ_uniqlymapped_read_upstream and perfect_SJ_multimapped_read_upstream detected. Previously, if there're none, TEProf3 errors out. Now, I will keep TEProf3 running and set those numbers as 0. However, if there no read is detected for both, it indicates there's something wrong with the sample, for example severe 3' bias. And those samples have <=100 TE-derived transcripts detected. [Update 2 and 3 are done during processing HNSCC_TCGA_CPTAC dataset.]
+4. Clean up Readme.
+
+v3.0.3: (20240406)
+1. Make prepDE.py a optional process so it won't max out memory when processing hundreds of samples together at the same time. (--quannoprepde)
+2. Make concatenating information from canonical genes optional, so it won't max out memory. (--quannogene)
+3. Fix the bug that `gene_transcript_coordinates` is missing in the teprof3_output_filter_transcript_TE_transcript_consensus.tsv file.
+4. Add --quanmode 2 that only uses SJ files for quantification, this is for filtering against gtex where we have a lot of samples.
+
+
+v3.1.0: (20240411)
+1. Fix bug in finding intron retention events.
+2. Separate the annotation filter out in the codes when finding splice gene target. Do them separately. Find splice gene target using intron train information, and find annotation filter info using the exon_1 of TE transcript. 
+(1) For finding exon_1 annotation: exon_1_panda = exon_1_panda.sort_values(by=["gene_exon_number_clean", "distance_between_stringtie_exonedge_and_annotated_exonedge", "overlap_between_stringtie_exon_and_annotated_exon", "gene_transcript_type_number"], ascending=[True,True,False,True])
+(2) For finding splice gene target: exon_gene_panda_temp = exon_gene_panda_temp.sort_values(by=["number_of_overlap_intron","position_of_the_first_overlap_intron_in_TE_transcript","overlap_intron_versus_gene_all_intron","gene_transcript_type_number"], ascending=[False,True,False,True])
+
+v3.1.1: (20240414)
+1. Update --json to --gdcjson and --gtexjson to process json file from gdc and gtex.
+2. Fix a bug in gtf_to_refbed function.
+
+v3.1.2: (20240418)
+1. Update process_meta_assemble.extract_filtered_taco_info_for_output_gtf so exon rows are printed in the order of left to right, instead of exon number. So the output TE consensus gtf file is compatible with guided mode.
+2. All output gtf files (eg TE.gtf and TE consensus.gtf), each exon record will be printed in the order of left to right, and the exon number is named from left to right regardless of strandness. 
+
+v3.1.3: (20240419)
+1. In --quanmode 2, the output teprof3_output_quantification.TE.tsv.gz may not cover all transcripts if a transcript has no related SJ detected across all samples. Fill them up with 0 in this version.
+
+v3.1.4: (20240420)
+1, Fix a minor error in v3.1.3 that there will be duplicated record in the teprof3_output_quantification.TE.tsv.gz file.
+
+v3.1.5: (20240424)
+1. There's an error in the quantification script, fix it.
+
+v3.1.6: (20240509)
+1. Optimize translation codes and fix strandness bug.
+2. Optimize documentation about how to prepare blast database and how to run blast.
+
+v3.1.7: (20240522)
+1. disable intersecting with full length LINE and HERV, so now all the output tables will not have duplicated rows. 
+
+v3.1.8: (20240613)
+1. For finding splice gene target: exon_gene_panda_temp = exon_gene_panda_temp.sort_values(by=["position_of_the_first_overlap_intron_in_TE_transcript","number_of_overlap_intron","overlap_intron_versus_gene_all_intron","gene_transcript_type_number"], ascending=[True,False,False,True])
+2. Ungrade translation codes.
+
+v3.1.9: (20240708)
+1. Bug fixed for not saving teprof3 version information.
+
+v3.2.0: (20241021)
+1. Add new space to output "assemble_commands.txt".
+2. Check if it's "chr1" or "1" in the input files.
+3. Make percentage_of_expression in quantification tables out of 100.
+4. Fix bug in keepintermediate, some files are removed accidently.
+5. For translation, right now in v3.1.9, if the TE-derived transcript is annotated, then it will not be translated because the whole transcript is gene-derived. But this is not right, for example for alujb-lin28b that's annotated. So, we should annotate TE-derived trasncript twice, one is overlap it against gene annotation (primary search), where the second search is against a gene annotation with all annotated TE-derived trasncripts removed (secondary search), so that we can use ATG that's not present in non-TE-derived isoform to do translation. 
+
+
+
+
+
+To do:
+1. pip and docker
+2. for annotation filter, use coverage drop/difference to distinguish whether it's 5' extention artifacts or real promoter.
+3. Use EM from Wanqing's pipeline (https://github.com/wanqingshao/TE_expression_in_scRNAseq) for quantification.
+4. enable intersecting with full length LINE and HERV again, but concatenate the result, so there will not be duplicated record in any table.
+5. Provide option to collapse duplciated transcripts (same TE splice into the same exon of the same gene, but with different intron chain).
+6. Make Cufflink format comptabile with --guided mode.
+
