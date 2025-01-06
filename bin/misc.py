@@ -42,29 +42,7 @@ def get_args():
 						help="json file downloaded from GDC for splice junction tsv files to generate sample_manifest.txt file", type=str, default="no")
 	parser.add_argument("--gtexjson", dest='gtexjson',
 						help="json file downloaded from GTEx for splice junction tsv files to generate sample_manifest.txt file", type=str, default="no")
-
-	## for identifying neoantigen candidate 
-	parser.add_argument("--split", dest='split',
-						help="run blastp on sbatch cluster like htcf, put the fasta file here", type=str, default="no")
-	parser.add_argument("--blastp", dest='blastp',
-						help="run blastp on sbatch cluster like htcf, put the fasta file here", type=str, default="no")
-	parser.add_argument("--blastpshort", dest='blastpshort',
-						help="run blastp-short on sbatch cluster like htcf, put the fasta file here", type=str, default="no")
-	parser.add_argument("--blastpdatabase", dest='blastpdatabase',
-						help="database that blastp will run against to (nr or gene)", type=str, default="nr")
-	parser.add_argument("--taxiddb", dest='taxiddb',
-						help="folder to taxid file", type=str, default=os.path.dirname(os.path.realpath(sys.argv[0])) + "/../reference/blast_database_nr/")
-	parser.add_argument("--blastjobnum", dest='blastjobnum',
-						help="number of blast jobs run simultaneously", type=str, default="50")
-	parser.add_argument("--classify", dest='classify',
-						help="path to teprof3_protein_information.tsv table from teprof3 --translation output", type=str, default="no")	
-	parser.add_argument("--detectedprotein", dest='detectedprotein',
-						help="process BLAST and BLAT result to get a list of detected TE-derived proteins", action="store_true")	
-	parser.add_argument("--parsenetmhcpan", dest='parsenetmhcpan',
-						help="parse output from netMHCpan", type=str, default="no")	
-	parser.add_argument("--neoantigen", dest='neoantigen',
-						help="get list of neoantigen candidates", action="store_true")	
-
+	
 	## prepare reference files
 	parser.add_argument("--repeatmasker", dest='repeatmasker',
 						help="repeatmasker file, only provide it if you are making a new reference", type=str, default="no")
@@ -166,17 +144,6 @@ def get_args():
 						help="whether to collect tpm information for canonical genes (default is True)", action = 'store_true')
 	parser.add_argument("-ql", "--quanreadlength", dest='quanreadlength',
 						help="read length of the provided RNA-seq libraries (default is 75)", type = str, default="75")
-
-	## in silico translation parameter
-	parser.add_argument("-ti", "--translation", dest='translation',
-						help="for translationmode 1: provide gtf file from teprof3 output for translation (e.g. teprof3 --translation teprof3_output_TE_transcript_consensus.gtf --translationmode 1)\nfor translationmode 2: provide table from teprof3 output for translation (e.g. teprof3 --translation teprof3_output_filter_transcript_TE_transcript_consensus.tsv --translationmode 2)", type = str, default="no")
-	parser.add_argument("-tm", "--translationmode", dest='translationmode',
-						help="mode for translation (1: remove all annotated TE-derived isoforms from the gene annotation, and re-annotate identified TE-derived transcripts using the gene annotation with only non-TE-derived isoforms, this mode can help us differentiate the TE-derived isoform and non-TE-derived isoform of the same gene for translation; 2: this will use the provided gene annotation with no modification to annotate identified TE-derived transcripts for translation)", type = str, default="1")
-	parser.add_argument("-tl", "--translationlength", dest='translationlength',
-						help="minimum length of translated protein (default 20)", type = int, default=20)
-	parser.add_argument("-tg", "--translationgenome", dest="translationgenome",
-					help="Reference genome name (eg. hg38, mm10) (name you used for installing genomepy)", type=str, default="hg38")
-
 
 	args = parser.parse_args()
 	return args
