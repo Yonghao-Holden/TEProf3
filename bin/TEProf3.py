@@ -39,7 +39,7 @@ import quantification
 def main():
 	## step 1. mark program start time for reference
 	version = "v3.2.0"
-	misc.print_time("Start TEProf3 run"+version)
+	misc.print_time("Start TEProf3 "+version)
 
 	## step 2. obtain input arguments
 	flags = misc.get_args()
