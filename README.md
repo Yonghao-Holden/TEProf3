@@ -233,7 +233,7 @@ If you are processing data downloaded from GDC, you can run `teprof3 --gdcjson <
 ## Chapter5-Steps Explained
 
 <div align="left">
-<img src="https://wangftp.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/workflow_figure.png" width="800px"/>
+<img src="https://wangftp.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/teprof3_scheme_2.png" width="800px"/>
 </div>
 
 
