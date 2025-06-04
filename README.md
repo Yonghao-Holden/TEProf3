@@ -5,6 +5,8 @@
 # TEProf3
 TEProf3 (TE-derived Promoter Finder 3) is a user-friendly, one-command tool designed to identify TE-derived promoters and transcripts using transcriptomic data from multiple sources, including short-read RNA-seq data, long-read RNA-seq data and single cell RNA-seq data.
 
+Thank you for using TEProf3 and please cite if you use it in your study: Qu, X., Liang, Y., McCornack, C., Xing, X., Schmidt, H., Tomlinson, C., ... & Wang, T. (2025). Charting the regulatory landscape of TP53 on transposable elements in cancer. *Genome Research.*
+
 ## Table of contents
 
 * [Chapter1 Required Softwares](#Chapter1-Required-softwares)
