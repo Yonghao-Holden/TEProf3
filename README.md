@@ -124,7 +124,57 @@ wget http://l1base.charite.de/BED/hsflnil1_8438_rm.bed
 ln -s hsflnil1_8438_rm.bed LINE1.bed
 ```
 
-(7) At the end, you should the following folder structure:
+(7) Set up genomepy reference (only required for translation)
+
+```
+## in python
+genomepy.install_genome("hg38", annotation=True, provider="UCSC", genomes_dir="/bar/yliang/genomes/private/genomepy")
+
+## in TEProf3/reference (name of the softlink needs to be genomepy)
+ln -s /bar/yliang/genomes/private/genomepy genomepy
+```
+(8) Set up Blastp database (only required for classfying proteins) (not neccessary in most cases)
+
+```
+## https://www.ncbi.nlm.nih.gov/books/NBK131777/
+## https://www.ncbi.nlm.nih.gov/books/NBK52640/
+## https://ftp.ncbi.nlm.nih.gov/blast/executables/LATEST/
+## download standalone BLAST local program
+wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.13.0/ncbi-blast-2.13.0+-x64-linux.tar.gz
+```
+
+```
+## to set up BLAST nr database
+## https://danielbruzzese.wordpress.com/2018/03/26/installing-and-querying-a-local-ncbi-nucleotide-database-nt/
+mkdir blast_database_nr; cd blast_database_nr
+wget "ftp://ftp.ncbi.nlm.nih.gov/blast/db/nr.??.tar.gz"
+find . -maxdepth 1 -name "*.gz"  | while read file ; do echo "tar -xvf ${file}" >> unzip.txt; done ;
+parallel_GNU -j 20 < unzip.txt
+```
+
+```
+## to set up BLAST database of all ORF from gene annotation
+mkdir blast_database_gene_annotation; cd blast_database_gene_annotation
+teprof3 --geneprotein --translationlength 20 --translationgenome hg38 2> geneprotein.err &> geneprotein.log
+makeblastdb -in gene_protein_sequence.fa \
+ -parse_seqids \
+ -title "gene annotation derived protein sequences" \
+ -dbtype prot \
+ -out gene_protein_sequence 2> makeblastdb.err &> makeblastdb.log
+```
+
+```
+## to set up BLAST database of Swiss-Prot/Uniprot
+mkdir blast_database_uniprot; cd blast_database_uniprot
+ln -s uniprotkb_AND_reviewed_true_AND_model_o_2024_05_12.fasta uniprot.fa
+makeblastdb -in uniprot.fa \
+ -parse_seqids \
+ -title "Uniprot database" \
+ -dbtype prot \
+ -out uniprot 2> makeblastdb.err &> makeblastdb.log
+```
+
+(9) At the end, you should the following folder structure:
 
 ```
 --TEProf3
@@ -178,7 +228,7 @@ ln -s hsflnil1_8438_rm.bed LINE1.bed
 ```
 ### 3. Create a `sample_manifest.txt` file with information of input files.
 
-* An exmple `sample_manifest.txt` file:
+* An example `sample_manifest.txt` file:
 
 ```
 sample1	short	mRNA_sample1.bam	none
@@ -336,7 +386,7 @@ TEProf3 will stop at this step as this satisfy most applications.
 | `-ql` or `--quanreadlength` | Read length of the provided RNA-seq libraries, default is **75**.|
 
 
-## Chapter6-Output Explained
+## Chapter 6 - Output Explained
 
 ### 1. `teprof3_output_transcript_statistic.tsv`
 
@@ -381,6 +431,281 @@ These are gtf files of TE-derived transcripts that pass filtering and used as in
 ## Chapter 7 - Note for scRNA-seq
 
 TEProf3 on scRNA-seq. Cluster first, and then take each cluster as one sample, take the pseudo-bulk bam file from each cluster as input and run TEPorf3. Then, we should be able to get a consensus transcript assembly across all cells. Then we can use this transcript assembly back to each individual cell for transcript-level quantification and TE quantification. Another way to do this is to treat each cell as one sample, then running stringtie on each cell is too noisy. And running TACO on thousands of samples is messy too. The third way to do this is running stringtie on pseudo-bulk bam file of all cells. Then it will have less sensitivity. Running stringtie on each cluster gives us enough coverage for each cluster, and good sensitivity because those cluster-specific transcripts won't be diluted out. The way Wanqing did it is to take bulk RNA-seq data of the same cell line. But for tumors, we won't have the matched bulk RNA-seq data most of the time. When with high cell number, to quantify the expression of each TE-derived transcript in each cell, use a chimeric gene annotation (e.g. GENCODE + TEProf3 output) to make the genome index and re-run STAR-solo to get the transcript-cell matrix.
+
+
+
+## Chapter8 Identify Neoantigen Candidates
+
+This chapter explains how to use teprof3 to identify neoantigen candidates derived from TE-derived transcripts.
+
+Step 8, 9 and 10 are annotating database and characterize protein products translated from TE-derived transcripts. It will output a fasta file that can be used as a database for MassSpec search.
+
+Step 11-15 are to identify neoantigens from TE-derived proteins detected in a MassSpec dataset.
+
+### 7. prepare gene annotation
+
+Go back to the reference folder of TEProf3, run this command to make a gene annotation of only non-TE-derived transcripts:
+
+`teprof3 --geneannotationfortranslation`
+
+### 8. ***in silico*** translation
+
+In this step, TEProf3 will perform ***in silico*** translation on TE-derived transcripts.
+
+This is a standalone step. Please run this after TEProf3 is done:
+
+`teprof3 --translation teprof3_output_TE_transcript_consensus.gtf 2> translation.err &> translation.log`
+
+Possible flags:
+
+| Flag | Description |
+| --- | --- |
+| `-ti` or `--translation` | for translationmode 1: provide gtf file from teprof3 output for translation (e.g. teprof3 --translation teprof3_output_TE_transcript_consensus.gtf --translationmode 1)\nfor translationmode 2: provide table from teprof3 output for translation (e.g. teprof3 --translation teprof3_output_filter_transcript_TE_transcript_consensus.tsv --translationmode 2).|
+| `-tm` or `--translationmode` | mode for translation (1: remove all annotated TE-derived isoforms from the gene annotation, and re-annotate identified TE-derived transcripts using the gene annotation with only non-TE-derived isoforms, this mode can help us differentiate the TE-derived isoform and non-TE-derived isoform of the same gene for translation; 2: this will use the provided gene annotation with no modification to annotate identified TE-derived transcripts for translation), default is **1**.|
+| `-tl` or `--translationlength` | Minimum length of translated peptide, default is **20**.|
+| `-tg` or `--translationgenome` | Reference genome name (eg. hg38, mm10) (name you used for installing genomepy), default is **hg38**.|
+
+Outputs:
+
+```
+teprof3_output_protein_sequence_blastp.fa
+teprof3_output_protein_sequence_blastpshort.fa
+teprof3_output_protein_sequence.fa
+teprof3_output_protein_sequence_gene_blastp.fa
+teprof3_output_protein_sequence_gene_blastpshort.fa
+teprof3_output_protein_sequence_TE_blastp.fa
+teprof3_output_protein_sequence_TE_blastpshort.fa
+teprof3_output_protein_information.tsv
+teprof3_output_protein_information_light.tsv
+command_used_for_teprof3_translation.txt
+```
+
+### 9. run blastp to prepare for protein classification
+
+A few limitations:
+blastp must be run on a SLURM system. blast must be installed. BLASTDB must be set up.
+
+Run the following commands:
+
+```
+mkdir annotate_database; cd annotate_database
+teprof3 --split protein_sequence_gene_blastp.fa
+teprof3 --split protein_sequence_gene_blastpshort.fa
+teprof3 --split protein_sequence_TE_blastp.fa
+teprof3 --split protein_sequence_TE_blastpshort.fa
+
+teprof3 --blastp protein_sequence_gene_blastp.fa
+teprof3 --blastp protein_sequence_TE_blastp.fa
+teprof3 --blastpshort protein_sequence_gene_blastpshort.fa
+teprof3 --blastpshort protein_sequence_TE_blastpshort.fa
+
+teprof3 --blastp protein_sequence_gene_blastp.fa --blastpdatabase gene
+teprof3 --blastpshort protein_sequence_gene_blastpshort.fa --blastpdatabase gene
+```
+
+After running the above blastp commands, you will have a folder structure as followed:
+
+```
+--annotate_database
+	*.fa
+	*blastp_commands.txt
+	*split_commands.txt
+	--subsampled_fasta
+```
+
+### 10. classify protein products
+
+In this step, TEProf3 will classify chimeric protein products into 
+
+```
+## run it in the annotate_database folder
+teprof3 --classify teprof3_protein_information.tsv
+#teprof3 --classify /scratch/yliang/HNSCC/data/CPTAC/2_test2_actual_run_TEProf2/test2_database/teprof3_protein_information.tsv
+```
+
+After running the above blastp commands, you will have a folder structure as followed:
+
+```
+--annotate_database
+	*.fa
+	*blastp_commands.txt
+	*split_commands.txt
+	teprof3_database_blast_to_the_same_protein.tsv
+	teprof3_database_classification.tsv
+	teprof3_percentage_of_database_protein_type_piechart.pdf
+	--subsampled_fasta
+```
+
+### 11. run blastp on detected peptides
+
+```
+mkdir analysis_use_teprof3; cd analysis_use_teprof3
+## run blastp
+ln -s <path_to_a_fasta_file_with_detected_peptide> detected_peptide.fa ## ln -s ../detected_peptides.fa .
+ln -s <teprof3_database_classification.tsv> teprof3_database_classification.tsv ## ln -s /scratch/yliang/HNSCC/analysis/CPTAC_TSTEA_candidates/2_test2_actual_run_TEProf2/annotate_database_use_teprof3/teprof3_database_classification.tsv
+ln -s <teprof3_database_blast_to_the_same_protein.tsv> teprof3_database_blast_to_the_same_protein.tsv ## ln -s /scratch/yliang/HNSCC/analysis/CPTAC_TSTEA_candidates/2_test2_actual_run_TEProf2/annotate_database_use_teprof3/teprof3_database_blast_to_the_same_protein.tsv .
+mkdir detected_peptides_blastp_result; cd detected_peptides_blastp_result
+ln -s ../detected_peptides.fa .
+teprof3 --split detected_peptides.fa
+teprof3 --blastpshort detected_peptides.fa
+## run blat
+cd ..; mkdir detected_peptides_blat_result; cd detected_peptides_blat_result
+ln -s <path_to_a_fasta_file_with_detected_peptide> detected_peptide.fa ## ln -s ../detected_peptides.fa .
+blat -t=dnax -q=prot -minScore=0 -tileSize=5 -stepSize=1 -minIdentity=5 -repMatch=10000000 /bar/yliang/genomes/private/hg38_autosexchromosom.fa detected_peptides.fa detected_peptides.blat.psl
+#pblat -threads=24 -t=dnax -q=prot -minScore=0 -tileSize=5 -stepSize=1 -minIdentity=5 -repMatch=10000000 /bar/yliang/genomes/private/hg38_autosexchromosom.fa detected_peptides.fa detected_peptides.blat.psl
+```
+
+right now, the folder structure will be:
+```
+--analysis_use_teprof3
+	detected_peptides.fa
+	teprof3_database_classification.tsv
+	teprof3_database_blast_to_the_same_protein.tsv
+	--detected_peptides_blastp_result
+		detected_peptides.fa
+		--subsampled_fasta
+	--detected_peptides_blat_result
+		detected_peptides.fa
+		detected_peptides.blat.psl
+```
+
+### 12. obtain list of detected TE-derived proteins
+
+```
+## run it in the analysis_use_teprof3 folder
+teprof3 --detectedprotein
+```
+
+right now, the folder structure will be:
+```
+--analysis_use_teprof3
+	teprof3_database_blast_to_the_same_protein.tsv
+	teprof3_detected_proteins.fa
+	teprof3_detected_proteins.tsv
+	teprof3_neoantigen_identification_statistic.tsv
+	--detected_peptides_blastp_result
+		detected_peptides.fa
+		--subsampled_fasta
+	--detected_peptides_blat_result
+		detected_peptides.fa
+		detected_peptides.blat.psl
+		detected_peptides.blat.tsv
+		teprof3_blat_result.tsv
+```
+
+
+### 13. run netMHCpan to get possible neoantigens
+
+```
+netMHCpan -a HLA-A02:01 -f teprof3_detected_proteins.fa -s -xls -xlsfile teprof3_detected_proteins.fa_HLA-A02-01.xls -BA > teprof3_detected_proteins.fa_HLA-A02-01.txt
+netMHCpan -a HLA-A02:02 -f teprof3_detected_proteins.fa -s -xls -xlsfile teprof3_detected_proteins.fa_HLA-A02-01.xls -BA > teprof3_detected_proteins.fa_HLA-A02-02.txt
+cat teprof3_detected_proteins.fa_HLA* > teprof3_detected_proteins.fa_HLA.txt
+teprof3 --parsenetmhcpan <combined_netMHCpan_output> # teprof3 --parsenetmhcpan teprof3_detected_proteins.fa_HLA-A02-01.txt
+```
+
+right now, the folder structure will be:
+```
+--analysis_use_teprof3
+	teprof3_detected_proteins.fa
+	teprof3_detected_proteins.tsv
+	teprof3_detected_proteins.fa_HLA-A02-01.txt
+	teprof3_detected_proteins.fa_HLA-A02-01.xls
+	teprof3_detected_proteins.fa_HLA-A02-01.txt.SB.txt
+	teprof3_detected_proteins.fa_HLA-A02-01.txt.WB.txt
+	teprof3_neoantigen_candidates_before_blast.fa
+	teprof3_neoantigen_candidates_before_blast.tsv
+	teprof3_neoantigen_identification_statistic.tsv
+	--detected_peptides_blastp_result
+		detected_peptides.fa
+		--subsampled_fasta
+	--detected_peptides_blat_result
+		detected_peptides.fa
+		detected_peptides.blat.psl
+		detected_peptides.blat.tsv
+		teprof3_blat_result.tsv
+```
+
+### 14. run blastp to remove neoantigens that could be from other proteins
+
+```
+## run blastp
+mkdir neoantigen_blastp_result; cd neoantigen_blastp_result
+ln -s ../teprof3_neoantigen_candidates_before_blast.fa
+teprof3 --split teprof3_neoantigen_candidates_before_blast.fa
+teprof3 --blastpshort teprof3_neoantigen_candidates_before_blast.fa
+## run blat
+cd ..; mkdir neoantigen_blat_result; cd neoantigen_blat_result
+blat -t=dnax -q=prot -minScore=0 -tileSize=5 -stepSize=1 -minIdentity=5 -repMatch=10000000 /bar/yliang/genomes/private/hg38_autosexchromosom.fa ../teprof3_neoantigen_candidates_before_blast.fa teprof3_neoantigen_candidates_before_blast.blat.psl
+```
+
+right now, the folder structure will be:
+```
+--analysis_use_teprof3
+	teprof3_detected_proteins.fa
+	teprof3_detected_proteins.tsv
+	teprof3_detected_proteins.fa_HLA-A02-01.txt
+	teprof3_detected_proteins.fa_HLA-A02-01.xls
+	teprof3_detected_proteins.fa_HLA-A02-01.txt.SB.txt
+	teprof3_detected_proteins.fa_HLA-A02-01.txt.WB.txt
+	teprof3_neoantigen_candidates_before_blast.fa
+	teprof3_neoantigen_candidates_before_blast.tsv
+	teprof3_neoantigen_identification_statistic.tsv
+	--detected_peptides_blastp_result
+		detected_peptides.fa
+		--subsampled_fasta
+	--detected_peptides_blat_result
+		detected_peptides.fa
+		detected_peptides.blat.psl
+		detected_peptides.blat.tsv
+		teprof3_blat_result.tsv
+	--neoantigen_blastp_result
+		teprof3_neoantigen_candidates_before_blast.fa
+		--subsampled_fasta
+	--neoantigen_blat_result
+		teprof3_neoantigen_candidates_before_blast.blat.psl
+```
+
+
+### 15. get final list of neoantigen candidates
+
+```
+## run in the analysis_use_teprof3 folder
+teprof3 --neoantigen
+```
+
+right now, the folder structure will be:
+```
+--analysis_use_teprof3
+	teprof3_detected_proteins.fa
+	teprof3_detected_proteins.tsv
+	teprof3_detected_proteins.fa_HLA-A02-01.txt
+	teprof3_detected_proteins.fa_HLA-A02-01.xls
+	teprof3_detected_proteins.fa_HLA-A02-01.txt.SB.txt
+	teprof3_detected_proteins.fa_HLA-A02-01.txt.WB.txt
+	teprof3_neoantigen_candidates_before_blast.fa
+	teprof3_neoantigen_candidates_before_blast.tsv
+	teprof3_neoantigen_candidates_after_blast.tsv
+	teprof3_neoantigen_identification_statistic.tsv
+	--detected_peptides_blastp_result
+		detected_peptides.fa
+		--subsampled_fasta
+	--detected_peptides_blat_result
+		detected_peptides.fa
+		detected_peptides.blat.psl
+		detected_peptides.blat.tsv
+		teprof3_blat_result.tsv
+	--neoantigen_blastp_result
+		teprof3_neoantigen_candidates_before_blast.fa
+		--subsampled_fasta
+	--neoantigen_blat_result
+		teprof3_neoantigen_candidates_before_blast.blat.psl
+	--neoantigen_characteristics
+```
+
+
+
+
+
 
 
 
