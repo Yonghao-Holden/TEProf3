@@ -163,7 +163,8 @@ v3.2.0: (20241021)
 4. Fix bug in keepintermediate, some files are removed accidently.
 5. For translation, right now in v3.1.9, if the TE-derived transcript is annotated, then it will not be translated because the whole transcript is gene-derived. But this is not right, for example for alujb-lin28b that's annotated. So, we should annotate TE-derived trasncript twice, one is overlap it against gene annotation (primary search), where the second search is against a gene annotation with all annotated TE-derived trasncripts removed (secondary search), so that we can use ATG that's not present in non-TE-derived isoform to do translation. 
 
-
+v3.4.0: (20251030)
+1. Enable strandess-specific processing for individual sample. Now, samples prepared with different library preparation protocol that resulted in different strandness can be run in one batch.
 
 
 
@@ -174,4 +175,5 @@ To do:
 4. enable intersecting with full length LINE and HERV again, but concatenate the result, so there will not be duplicated record in any table.
 5. Provide option to collapse duplciated transcripts (same TE splice into the same exon of the same gene, but with different intron chain).
 6. Make Cufflink format comptabile with --guided mode.
-
+7. Add number of overlap seqeunces between first exon and TE copy as an option for filter (default = 10bp)
+8. Output QC plots including number of overlapping bases, etc

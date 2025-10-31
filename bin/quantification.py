@@ -45,10 +45,24 @@ def quantification(input_dataset, flags):
 		input_gtf_files=[]
 		input_SJ_files = []
 		samples=[]
+		input_strandness_info=[]
 		for sample in input_dataset:
+			## sample names
 			samples.append(sample)
+			## input short read bam files
 			input_bam_SR_files.append(input_dataset[sample]['bam_SR'])
+			## input short read SJ files
 			input_SJ_files.append(input_dataset[sample]['SJ'])
+			## input strandness information
+			if flags.assemblestrand == '-1':
+				input_strandness_info.append(input_dataset[sample]['strandness'])
+			elif flags.assemblestrand == '0':
+				input_strandness_info.append('')
+			elif flags.assemblestrand == '1':
+				input_strandness_info.append('--rf')
+			elif flags.assemblestrand == '2':
+				input_strandness_info.append('--fr')
+			## input gtf files for naming the output gtf files
 			if flags.guided == "no":
 				input_gtf_files.append(input_dataset[sample]['gtf'])
 			else:
@@ -57,8 +71,8 @@ def quantification(input_dataset, flags):
 		# step 1. run stringtie
 		misc.print_time("start stringtie for quantification")
 		commands = []
-		for input_bam_SR_file, input_gtf_file in zip(input_bam_SR_files, input_gtf_files):
-			commands.append("samtools view -q 255 -h "+input_bam_SR_file+"| stringtie - -o "+input_gtf_file.replace("gtf","quantification.gtf")+" -e -b "+input_gtf_file.replace("gtf","stats")+" -p 2 -m 100 -c 1 -G assembled/TE_transcript_consensus.filtered.with_gene_annotation.gtf")
+		for input_bam_SR_file, input_gtf_file, input_strandness in zip(input_bam_SR_files, input_gtf_files, input_strandness_info):
+			commands.append("samtools view -q 255 -h "+input_bam_SR_file+"| stringtie - -o "+input_gtf_file.replace("gtf","quantification.gtf")+" -e -b "+input_gtf_file.replace("gtf","stats")+" "+input_strandness+" -p 2 -m 100 -c 1 -G assembled/TE_transcript_consensus.filtered.with_gene_annotation.gtf")
 
 		with open("assembled/quantification_command.txt","w") as output_file:
 			for command in commands:

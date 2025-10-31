@@ -38,7 +38,7 @@ import quantification
 
 def main():
 	## step 1. mark program start time for reference
-	version = "v3.2.0"
+	version = "v3.4.0"
 	misc.print_time("Start TEProf3 "+version)
 
 	## step 2. obtain input arguments
@@ -116,20 +116,14 @@ def main():
 	misc.print_version(version=version)
 
 	if flags.samplenumber != 10:
-		if flags.assemblesamplenumber == 10:
-			flags.assemblesamplenumber = flags.samplenumber
-		if flags.processsamplenumber == 10:
-			flags.processsamplenumber = flags.samplenumber
-		if flags.filtersamplenumber == 10:
-			flags.filtersamplenumber = flags.samplenumber
-		if flags.quansamplenumber == 10:
-			flags.quansamplenumber = flags.samplenumber
+		flags.assemblesamplenumber = flags.samplenumber
+		flags.processsamplenumber = flags.samplenumber
+		flags.filtersamplenumber = flags.samplenumber
+		flags.quansamplenumber = flags.samplenumber
 
 	misc.print_time("Read manifest file")
 	manifest = flags.manifest # manifest="sample_manifest.txt"
 	input_dataset = misc.parse_manifest(manifest)
-	if input_dataset == 1:
-		exit()
 	misc.print_dataset(input_dataset)
 
 	with open("debug/command_used_for_teprof3.txt", "w") as command_file:

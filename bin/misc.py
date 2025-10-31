@@ -57,7 +57,7 @@ def get_args():
 
 	## general parameters
 	parser.add_argument("-f", "--manifest", dest="manifest",
-						help="Dataset manifest file: sample name, short/long read, bam/gtf file (ended with bam or gtf). (tab-delimited)", type=str)
+						help="Dataset manifest file: sample name, short/long read, file name, library strandness (fr or rf or none or leave_empty)(--assemblestrand flag will override this). (tab-delimited)", type=str)
 	parser.add_argument("-ki", "--keepintermediate", dest="keepintermediate",
 						help="Keep intermediate files (ie, output files from bedtools intersect)", action="store_true")
 	parser.add_argument("-s", "--samplenumber", dest="samplenumber",
@@ -79,7 +79,7 @@ def get_args():
 	parser.add_argument("-as", "--assemblesamplenumber", dest='assemblesamplenumber',
 						help="number of samples to be processed together at the same time (default is 10)", type = int, default=10)
 	parser.add_argument("-ast", "--assemblestrand", dest='assemblestrand',
-						help="0: the library is not stranded; 1: the library is stranded and firststrand (eg. rf flag in stringtie); 2: the library is stranded and secondstrand (eg. fr flag in stringtie) (default is 0)", type = str, default="0") ## 2/fr for Wang lab stranded RNA-seq library
+						help="-1: strandness information is provided in the sample manifest file; 0: the library is not stranded; 1: the library is stranded and firststrand (eg. rf flag in stringtie); 2: the library is stranded and secondstrand (eg. fr flag in stringtie) (default is -1) (this flag overrides information provided in the sample manifest file)", type = str, default="-1") ## 2/fr for Wang lab stranded RNA-seq library
 	parser.add_argument("-aj", "--assemblejunctionread", dest='assemblejunctionread',
 						help="There should be at least this many spliced reads that align across a junction (i.e. junction coverage). This number can be fractional, since some reads align in more than one place. A read that aligns in n places will contribute 1/n to the junction coverage. Default: 1", type = str, default="1")
 
@@ -158,36 +158,40 @@ def print_version(version):
 def parse_manifest(input_file):
 	""" parse the input manifest """
 	if os.path.isfile(input_file) is False:
-		print_time("Can't find " + input_file + ". Please check.")
-		return(1)
+		psys.exit("Can't find " + input_file + ". Please check.")
 	input_dict = {}
 	with open(input_file, 'r') as file:
 		for line in file:
 			entry = line.strip('\n').split('\t')
-			if len(entry) == 3:
-				if entry[0] in input_dict:
-					if entry[1] == "long":
-						input_dict[entry[0]]["bam_LR"] = entry[2]
-					elif entry[1] == "short":
-						input_dict[entry[0]]["bam_SR"] = entry[2]
-					elif entry[1] == "gtf":
-						input_dict[entry[0]]["gtf"] = entry[2]
-					elif entry[1] == "SJ":
-						input_dict[entry[0]]["SJ"] = entry[2]
-				elif entry[0] not in input_dict:
-					if entry[1] == "long":
-						input_dict[entry[0]] = {"bam_LR":entry[2]}
-					elif entry[1] == "short":
-						input_dict[entry[0]] = {"bam_SR":entry[2]}
-					elif entry[1] == "gtf":
-						input_dict[entry[0]] = {"gtf":entry[2]}
-					elif entry[1] == "SJ":
-						input_dict[entry[0]] = {"SJ":entry[2]}
+			if len(entry) == 3 or len(entry) == 4:
+				if entry[0] not in input_dict:
+					## parse strandness information
+					if len(entry) == 3:
+						input_dict[entry[0]] = {"strandness":""}
+					elif len(entry) == 4:
+						if entry[3] == "none":
+							input_dict[entry[0]] = {"strandness":""}
+						elif entry[3] == "fr" or entry[3] == "rf":
+							input_dict[entry[0]] = {"strandness":"--"+entry[3]}
+						else:
+							print_time("Please put one of the following options in the fourth column (strandness) of the sample manifest: fr or rf or none or leave_empty")
+							exit()
+				if entry[1] == "long":
+					input_dict[entry[0]]["bam_LR"] = entry[2].strip()
+				elif entry[1] == "short":
+					input_dict[entry[0]]["bam_SR"] = entry[2].strip()
+				elif entry[1] == "gtf":
+					input_dict[entry[0]]["gtf"] = entry[2].strip()
+				elif entry[1] == "SJ":
+					input_dict[entry[0]]["SJ"] = entry[2].strip()
+				else:
+					print_time("Please put one of the following options in the second column (data_type) of the sample manifest: long/short/gtf/SJ")
+					exit()
 			elif entry == ['']:
 				continue
 			else:
-				print_time("please put 3 arguments in each row in the manifest file")
-				return(1)
+				print_time("please put 3 or 4 arguments in each row in the manifest file")
+				exit()
 	return(input_dict)
 
 def print_dataset(input_dataset):
@@ -315,7 +319,7 @@ def reset_folder(flags):
 	with open(input_file, 'r') as file:
 		for line in file:
 			entry = line.strip('\n').split('\t')
-			if len(entry) == 3:
+			if len(entry) == 3 or len(entry) == 4:
 				if entry[1] == "long":
 					files_in_bam.append(entry[2])
 					files_in_bam.append(entry[2]+".bai")
@@ -329,7 +333,7 @@ def reset_folder(flags):
 			elif entry == ['']:
 				continue
 			else:
-				print_time("please put 3 arguments in each row in the manifest file")
+				print_time("please provide a manifest file following the instructions on github.")
 				exit()
 
 	print_time("reset files from a failed run")

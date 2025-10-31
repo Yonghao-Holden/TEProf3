@@ -1,68 +1,56 @@
 <div align="left">
-<img src="https://wangftp.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/png/logo-no-background_new.png" width="300px"/>
+<img src="https://wangcluster.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/png/logo-no-background_new.png" width="300px"/>
 </div>
 
 # TEProf3
-TEProf3 (TE-derived Promoter Finder 3) is a user-friendly, one-command tool designed to identify TE-derived promoters and transcripts using transcriptomic data from multiple sources, including short-read RNA-seq data, long-read RNA-seq data and single cell RNA-seq data.
+**TEProf3 (TE-derived Promoter Finder 3)** is a user-friendly, one-command tool for identifying transposable element **(TE)-derived promoters and their resulting transcripts**. It supports transcriptomic data from different modalities, including **short-read RNA-seq**, **long-read RNA-seq**, and **single-cell RNA-seq** datasets.
 
-Thank you for using TEProf3 and please cite if you use it in your study: Qu, X., Liang, Y., McCornack, C., Xing, X., Schmidt, H., Tomlinson, C., ... & Wang, T. (2025). Charting the regulatory landscape of TP53 on transposable elements in cancer. *Genome Research.*
+Thank you for using TEProf3! If you use this tool in your research, please cite the following publication:
+
+* Qu, X., Liang, Y., McCornack, C., Xing, X., Schmidt, H., Tomlinson, C., ... & Wang, T. (2025). Charting the regulatory landscape of TP53 on transposable elements in cancer. Genome Research, 35(6), 1456-1471. [PMID: [40360186](https://pubmed.ncbi.nlm.nih.gov/40360186/)]
 
 ## Table of contents
 
-* [Chapter1 Required Softwares](#Chapter1-Required-softwares)
-* [Chapter2 Required Python Packages](#Chapter2-Required-Python-packages)
-* [Chapter3 Installation](#Chapter3-installation)
-* [Chapter4 Get Started](#Chapter4-get-started)
-* [Chapter5 Steps Expained](#Chapter5-Steps-Expained)
-* [Chapter6 Output Expained](#Chapter6-Output-Expained)
+* [Chapter 1 - Required Softwares](#Chapter1-Required-softwares)
+* [Chapter 2 - Required Python Packages](#Chapter2-Required-Python-packages)
+* [Chapter 3 - Installation](#Chapter3-installation)
+* [Chapter 4 - Get Started](#Chapter4-get-started)
+* [Chapter 5 - Steps Expained](#Chapter5-Steps-Expained)
+* [Chapter 6 - Output Expained](#Chapter6-Output-Expained)
 
-## Chapter1-Required Softwares
+## Chapter 1 - Required Softwares
 
-* Add the following softwares to PATH
+* stringtie >= 2.2.1 (both stringtie and prepDE.py3 need to be in the PATH variable)
 
-stringtie >= 2.2.1 (add both stringtie and prepDE.py3 to your PATH)
+* bedtools >= v2.17.0
 
-bedtools >= v2.17.0
+* samtools >= 1.2
 
-samtools >= 1.2
+* TACO >= v0.7.3
 
-TACO >= v0.7.3
-
-* After installation of each tool, please run the following commands to make sure they are installed and in the PATH
-
-which stringtie
-
-which prepDE.py3
-
-which bedtools
-
-which samtools
-
-which taco_run
-
-## Chapter2-Required Python Packages
+## Chapter 2 - Required Python Packages
 
 * the following packages can be installed by creating a conda environment with the provided teprof3.yml file
 
-python >= 3.0.0
+* python >= 3.0.0
 
-multiprocess >= 0.70.12.2
+* multiprocess >= 0.70.12.2
 
-pandas >= 2.0.1
+* pandas >= 2.0.1
 
-tqdm >= 4.65.0
+* tqdm >= 4.65.0
 
-genomepy >= 0.15.0
+* genomepy >= 0.15.0
 
-natsort >= 8.2.0
+* natsort >= 8.2.0
 
-pysam >= 0.15.4
+* pysam >= 0.15.4
 
-bgzip >= 1.2.1
+* bgzip >= 1.2.1
 
-tabix >= 1.2.1
+* tabix >= 1.2.1
 
-## Chapter3-Installation
+## Chapter 3 - Installation
 
 ### 1. Download TEProf3 from github:
 
@@ -92,7 +80,7 @@ cd TEProf3
 mkdir reference
 ```
 
-(2) Download repeatmasker (TE annotation) from https://www.repeatmasker.org. (For example: https://www.repeatmasker.org/genomes/hg38/RepeatMasker-rm405-db20140131/hg38.fa.out.gz)  
+(2) Download repeatmasker (TE annotation) from the [Repeatmasker](https://www.repeatmasker.org) website. (For example: [hg38](https://www.repeatmasker.org/genomes/hg38/RepeatMasker-rm405-db20140131/hg38.fa.out.gz))
 
 ```
 cd reference
@@ -100,11 +88,11 @@ wget https://www.repeatmasker.org/genomes/hg38/RepeatMasker-rm405-db20140131/hg3
 teprof3 --repeatmasker hg38.fa.out
 ```
 
-If you want to switch to another genome, remove the existed repeatmasker.txt file, download repeatmasker annotation for your interested genome and re-run `teprof3 --repeatmasker <repeatmasker_annotation_of_your_interested_genome>`.
+If you want to switch to another genome, remove the existed repeatmasker.txt file, download the repeatmasker annotation of your interested genome and re-run `teprof3 --repeatmasker <repeatmasker_annotation_of_your_interested_genome>`.
 
-(3) Download gene annotation from Gencode (https://www.gencodegenes.org/). (For example: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_36/gencode.v36.annotation.gtf.gz)
+(3) Download gene annotation from [GENCODE](https://www.gencodegenes.org/). (For example: [hg38_GENCODE_v36](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_36/gencode.v36.annotation.gtf.gz))
 
-TEProf3 is compatible with Gencode and Ensembl annoation. Please leave a requrest in the Issues tab if you need to use gene annotation from other source.
+TEProf3 is compatible with GENCODE and Ensembl annoation. Please leave a requrest in the Issues tab if you need to use gene annotation from other source.
 
 ```
 wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_36/gencode.v36.annotation.gtf.gz; gunzip gencode.v36.annotation.gtf.gz
@@ -119,9 +107,8 @@ gunzip hg38.fa.gz
 ln -s hg38.fa ref_genome.fa
 ```
 
-(5) Download HERV database from Telescope (only required if you are interested in whether the transcript is overlapped with HERV)
+(5) Download HERV database from [Telescope](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006453#sec019)) (only required if you are interested in whether the transcript is overlapped with HERV)
 
-Telescope: https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006453#sec019
 ```
 # download S1 File. Annotation of HERV elements from 60 subfamilies in reference genome hg38
 wget https://doi.org/10.1371/journal.pcbi.1006453.s006
@@ -129,9 +116,8 @@ ln -s journal.pcbi.1006453.s006 HERV.gtf
 teprof3 --hervannotation HERV.gtf
 ```
 
-(6) Download full length LINE1 database from L1Base 2 (only required if you are interested in whether the transcript is overlapped with LINE1)
+(6) Download full length LINE1 database from [L1Base 2](http://l1base.charite.de/l1base.php) (only required if you are interested in whether the transcript is overlapped with LINE1)
 
-L1Base 2: http://l1base.charite.de/l1base.php
 ```
 # download S1 File. Annotation of HERV elements from 60 subfamilies in reference genome hg38
 wget http://l1base.charite.de/BED/hsflnil1_8438_rm.bed
@@ -159,7 +145,7 @@ ln -s hsflnil1_8438_rm.bed LINE1.bed
 	--UpdateLog.txt
 ```
 
-## Chapter4-Get Started
+## Chapter 4 - Get Started
 
 ### 1. Create a folder where you want to run TEProf3 in.
 
@@ -171,7 +157,7 @@ ln -s hsflnil1_8438_rm.bed LINE1.bed
 ```
 (a) Total RNA-seq data is supported and has comparable performance with mRNA-seq data. 
 (b) Long read RNA-seq data is supported. TEProf3 will quantify number of reads from LR data that support each novel splice junction, but will NOT use long read information for filtering.
-(c) TEProf3 is also compatible with scRNA-seq data. Take pseudobulk file of each cluster as one sample and run TEProf3.
+(c) TEProf3 is also compatible with scRNA-seq data. Take pseudobulk file of each cluster as individual sample and run TEProf3.
 ```
 
 (2) Note for bam files:
@@ -184,29 +170,34 @@ ln -s hsflnil1_8438_rm.bed LINE1.bed
 
 (3) there're a few QC metrices that're important and will greatly impact the specificity and sensitivity of TEProf3. 
 ```
-(a) Gene body coverage: because TEProf3 heavily depends on finding reads that support the novel splice junctions at the 5' end of the transcript. Thus, a library with severe 3' bias (for example, a mRNA-seq library with severe RNA degradation during library preparation) is not optimal for TEProf3.
-(b) Library complexity: because TE-derived transcripts, in most cases, have a relatively lower expression level. Thus, a library with low library complexity might underestimate the abundance of TE-derived transcripts.
-(c) Sequencing depth: it is recommended to have at least 30-40M reads.
-(d) Pair-end vs single-end sequencing: TEProf3 heavily depends on the information of reads spanning over splice junction. Single-end sequencing impairs the propability of detecting splice junction, thus underestimate the abundance of TE-derived transcripts.
-(e) Read length: longer read length, for example 2x150bp, will have a higher chance having reads detecting splice junctions, thus, increase the sensitivity of the TE-derived transcript discovery.
+(a) **Gene body coverage**: because TEProf3 heavily depends on finding reads that support the novel splice junctions at the 5' end of the transcript. Thus, a library with severe 3' bias (for example, a mRNA-seq library with severe RNA degradation during library preparation) is not optimal for TEProf3.
+(b) **Library complexity**: because TE-derived transcripts, in most cases, have a relatively lower expression level. Thus, a library with low library complexity might underestimate the abundance of TE-derived transcripts.
+(c) **Sequencing depth**: it is recommended to have at least 30-40M reads.
+(d) **Pair-end vs single-end sequencing**: TEProf3 heavily depends on the information of reads spanning over splice junction. Single-end sequencing impairs the propability of detecting splice junction, thus underestimate the abundance of TE-derived transcripts.
+(e) **Read length**: longer read length, for example 2x150bp, will have a higher chance having reads detecting splice junctions, thus, increase the sensitivity of the TE-derived transcript discovery.
 ```
-### 3. Create a `sample_manifest.txt` file with information of input files. For example:
+### 3. Create a `sample_manifest.txt` file with information of input files.
+
+* An exmple `sample_manifest.txt` file:
 
 ```
-sample1	short	mRNA_sample1.bam
-sample2	short	mRNA_sample2.bam
-sample3	short	mRNA_sample3.bam
-sample1	SJ	mRNA_sample1.SJ.out.tab
-sample2	SJ	mRNA_sample2.SJ.out.tab
-sample3	SJ	mRNA_sample3.SJ.out.tab
-sample1	gtf	mRNA_sample1.gtf
-sample2	gtf	mRNA_sample2.gtf
-sample3	gtf	mRNA_sample3.gtf
+sample1	short	mRNA_sample1.bam	none
+sample2	short	mRNA_sample2.bam	rf
+sample3	short	mRNA_sample3.bam	fr
+sample1	SJ	mRNA_sample1.SJ.out.tab	none
+sample2	SJ	mRNA_sample2.SJ.out.tab	rf
+sample3	SJ	mRNA_sample3.SJ.out.tab	fr
+sample1	gtf	mRNA_sample1.gtf	none
+sample2	gtf	mRNA_sample2.gtf	rf
+sample3	gtf	mRNA_sample3.gtf	fr
 ```
 
-Column 1 is sample name, column 2 is data type (short, long, SJ, and gtf), column 3 is file name. Index files for bam files are not needed in the `sample_manifest.txt` file.
-
-Be careful don't put SPACE in the file name.
+| Column | Description |
+| --- | --- |
+| 1 | sample name |
+| 2 | data type (choose from the following options: short, long, SJ, gtf) |
+| 3 | file name |
+| 4 | library strandness (choose from the following options: fr, rf, none)(You can leave this cell empty. This cell by default is none)(--assemblestrand flag will override this)) |
 
 Here are some quick commands to automatically genereate the sample_manifest.txt file for you.
 
@@ -216,42 +207,38 @@ find . -maxdepth 1 -name "*.tab"  | while read file ; do xbase=$(basename $file)
 find . -maxdepth 1 -name "*.gtf"  | while read file ; do xbase=$(basename $file); sample_name_temp=${xbase/mRNA_/}; sample_name=${sample_name_temp/.gtf/} ; echo -e "${sample_name}\tgtf\t${xbase}" >> sample_manifest.txt; done ;
 ```
 
-If you are processing data downloaded from GDC, you can run `teprof3 --gdcjson <downloaded json file>` to generate the sample manifest file.
-
-1. on GDC, add all the `<*.rna_seq.star_splice_junctions.tsv.gz>` files of intersted samples in your cart
-
-2. go into your cart
-
-3. click "Metadata" bottom to download the json file
-
-4. use this downloaded json file to generate manifest file
-
-5. use the following command to filter the sample_manifest.txt file to remove files that weren't downloaded successfully
-
 ### 4. Run `teprof3 -f sample_manifest.txt 2> teprof3.err &> teprof3.log`
 
 ### 5. If a TEProf3 run errors out or if you want to re-run TEProf3, run `teprof3 -f sample_manifest.txt --reset` to reset the folder
 
-## Chapter5-Steps Explained
+## Chapter 5 - Steps Explained
 
 <div align="left">
-<img src="https://wangftp.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/teprof3_scheme_2_high_resolution.png" width="800px"/>
+<img src="https://wangcluster.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/teprof3_scheme_2_high_resolution.png" width="800px"/>
 </div>
 
 
 ### 1. Data preparation
 
-Short read RNA-seq data give us the highest confidence (both total RNA-seq and mRNA-seq, single-end and paired-end are supported by TEProf3). So, short read bam file is required for TEProf3, along with the index file (.bam.bai) and SJ file from STAR output (.tab). [i.e. short and SJ are required in the `sample_manifest.txt` file]
+* Short-read RNA-seq data provide the highest confidence for TE-derived promoter detection.
+* TEProf3 supports both total RNA-seq and mRNA-seq, in single-end or paired-end formats.
+* A short-read BAM file is required for TEProf3, along with its index file (.bam.bai) and the splice junction (SJ) file generated by STAR (.tab).
 
-gtf files are optional and can be generated using TEProf3, which is recommended. [i.e. gtf is optional in the `sample_manifest.txt` file]
+> `short` and `SJ` entries are required in the `sample_manifest.txt` file.
 
-Long read RNA-seq data is also supported but given the low sensitivity of long read RNA-seq, information from long read will only be profiled but not used for any filtering. [i.e. long is optional in the `sample_manifest.txt` file]
+* GTF files are optional and can be automatically generated by TEProf3, which is recommended.
 
-All steps are designed in a multiprocessing manner with 10 samples processed in parallel by default. Each sample requires one core and ~3Gb memory.
+> `gtf` is optional in the s`ample_manifest.txt` file.
+
+* Long-read RNA-seq data are also supported.
+
+> `long` is optional in the `sample_manifest.txt` file.
+
+All processing steps are designed for multiprocessing, with 10 samples processed in parallel by default. Each sample typically requires one CPU core and approximately 3 GB of memory.
 
 | Flag | Description |
 | --- | --- |
-| `-f` or `--manifest` | Provide a manifest file contains the following information of each file: sample name, data type (**short**. **long**, **gtf**, **SJ**), file name.|
+| `-f` or `--manifest` | Provide a manifest file containing the following information: sample name, data type (**short**, **long**, **gtf**, **SJ**), file name.|
 | `-ki` or `--keepintermediate` | Include this flag to keep intermediate files generated, default is **False**. |
 | `-g` or `--guided` | Provide a gtf file and run TEProf3 in guided mode. In guided mode, TEProf3 will parse the provided gtf file, identify TE-derived transcripts, and use them for quantification. |
 | `-s` or `--samplenumber` | Number of samples to be processed in parallel for all steps, default is **10**. |
@@ -287,7 +274,7 @@ In this step, TEProf3 will collect stringtie output and obtain TE-derived transc
 | `-ptn` or `--processtranscriptnumber` | Only include samples with >x TE-derived transcripts identified in the sample. Typically, there're >1000 TE-derived transcripts identified in primary tumor samples and cancer cell lines. Extreme low number of TE-derived transcripts usually indicates low library quality. Normal tissue samples and some cancer samples have lower number of TE-derived transcripts. You can fine-tune this cutoff by plotting the distribution of # of TE-derived transcripts per sample in your dataset, default is **100**. |
 
 <div align="left">
-<img src="https://wangftp.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/different_class_figure_new.png" width="800px"/>
+<img src="https://wangcluster.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/different_class_figure_new.png" width="800px"/>
 </div>
 
 ### 4. Filter transcripts
@@ -319,7 +306,7 @@ It will output a gtf file of TE-derived transcripts and a tsv file for each samp
 
 
 <div align="left">
-<img src="https://wangftp.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/explain_filtering_figure_new.png" width="800px"/>
+<img src="https://wangcluster.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/explain_filtering_figure_new.png" width="800px"/>
 </div>
 
 ### 5. Mega assembly
@@ -374,9 +361,9 @@ GTF file of the TE-derived transcripts consensus. You can use it for guided mode
 This table saves the expression information of each TE-derived transcript in each sample, including splice junction support of each transcript in each sample.
 
 To determine whether a TE-derived transcript is present or not in one sample, we recommned to use the following three criteria:
-(1) > 1TPM
-(2) >= 1 perfect_SJ_uniqlymapped_read_downstream
-(3) SJ_uniqlymapped_read_upstream <= 0.5 * perfect_SJ_uniqlymapped_read_downstream
+> (1) > 1TPM
+> (2) >= 1 perfect_SJ_uniqlymapped_read_downstream
+> (3) SJ_uniqlymapped_read_upstream <= 0.5 * perfect_SJ_uniqlymapped_read_downstream
 
 ### 6. `teprof3_output_quantification.tsv.gz`
 
@@ -391,7 +378,7 @@ You can directly upload these refbed files to WashU epigenome browser (https://e
 These are gtf files of TE-derived transcripts that pass filtering and used as input for mega-assembly. 
 
 
-## Chapter7-Note for scRNA-seq
+## Chapter 7 - Note for scRNA-seq
 
 TEProf3 on scRNA-seq. Cluster first, and then take each cluster as one sample, take the pseudo-bulk bam file from each cluster as input and run TEPorf3. Then, we should be able to get a consensus transcript assembly across all cells. Then we can use this transcript assembly back to each individual cell for transcript-level quantification and TE quantification. Another way to do this is to treat each cell as one sample, then running stringtie on each cell is too noisy. And running TACO on thousands of samples is messy too. The third way to do this is running stringtie on pseudo-bulk bam file of all cells. Then it will have less sensitivity. Running stringtie on each cluster gives us enough coverage for each cluster, and good sensitivity because those cluster-specific transcripts won't be diluted out. The way Wanqing did it is to take bulk RNA-seq data of the same cell line. But for tumors, we won't have the matched bulk RNA-seq data most of the time. When with high cell number, to quantify the expression of each TE-derived transcript in each cell, use a chimeric gene annotation (e.g. GENCODE + TEProf3 output) to make the genome index and re-run STAR-solo to get the transcript-cell matrix.
 
