@@ -15,8 +15,8 @@ Thank you for using TEProf3! If you use this tool in your research, please cite 
 * [Chapter 2 - Required Python Packages](#Chapter-2---Required-Python-packages)
 * [Chapter 3 - Installation](#Chapter-3---installation)
 * [Chapter 4 - Get Started](#Chapter-4---get-started)
-* [Chapter 5 - Steps Expained](#Chapter-5---Steps-Expained)
-* [Chapter 6 - Output Expained](#Chapter-6---Output-Expained)
+* [Chapter 5 - Steps Explained](#Chapter-5---Steps-Explained)
+* [Chapter 6 - Output Explained](#Chapter-6---Output-Explained)
 
 ## Chapter 1 - Required Softwares
 
