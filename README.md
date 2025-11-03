@@ -80,7 +80,7 @@ cd TEProf3
 mkdir reference
 ```
 
-(2) Download repeatmasker (TE annotation) from the [Repeatmasker](https://www.repeatmasker.org) website. (For example: [hg38](https://www.repeatmasker.org/genomes/hg38/RepeatMasker-rm405-db20140131/hg38.fa.out.gz))
+(2) Download repeatmasker (TE annotation) from the [Repeatmasker](https://www.repeatmasker.org) website. (For example: [hg38](https://www.repeatmasker.org/genomes/hg38/rmsk4.0.5_rb20140131/hg38.fa.out.gz))
 
 ```
 cd reference
@@ -274,7 +274,7 @@ In this step, TEProf3 will collect stringtie output and obtain TE-derived transc
 | `-ptn` or `--processtranscriptnumber` | Only include samples with >x TE-derived transcripts identified in the sample. Typically, there're >1000 TE-derived transcripts identified in primary tumor samples and cancer cell lines. Extreme low number of TE-derived transcripts usually indicates low library quality. Normal tissue samples and some cancer samples have lower number of TE-derived transcripts. You can fine-tune this cutoff by plotting the distribution of # of TE-derived transcripts per sample in your dataset, default is **100**. |
 
 <div align="left">
-<img src="https://wangcluster.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/different_class_figure_new.png" width="800px"/>
+<img src="https://wangcluster.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/different_class_figure_v2.png" width="800px"/>
 </div>
 
 ### 4. Filter transcripts
