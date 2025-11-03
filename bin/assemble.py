@@ -36,13 +36,13 @@ def start_assemble(input_dataset, flags):
 		misc.print_time("You chose NOT to run de novo assembly in TEProf3 and provided gtf files, will move all the gtf files to the assembled folder and proceed to next step")
 		input_dataset = move_gtf(input_dataset)
 	elif assemble_mode == "1":
-		misc.print_time("You chose to run stringtie on your short read mRNA-seq data, will start now")      
+		misc.print_time("You chose to run stringtie on your short read RNA-seq data, will start now")      
 		input_dataset = run_stringtie_assemble(input_dataset, flags, "short")
 	elif assemble_mode == "2":
-		misc.print_time("You chose to run stringtie on your long read mRNA-seq data, will start now")
+		misc.print_time("You chose to run stringtie on your long read RNA-seq data, will start now")
 		input_dataset = run_stringtie_assemble(input_dataset, flags, "long")
 	elif assemble_mode == "3":
-		misc.print_time("You chose to run stringtie on your short read and long read mRNA-seq data, will start now")
+		misc.print_time("You chose to run stringtie on your short read and long read RNA-seq data, will start now")
 		input_dataset = run_stringtie_assemble(input_dataset, flags, "hybrid")
 	else:
 		misc.print_time("Please put one of the following options for the --assemblemode flag: 0, 1, 2, 3")
