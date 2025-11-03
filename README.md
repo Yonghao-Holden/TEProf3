@@ -2,7 +2,6 @@
 <img src="https://wangcluster.wustl.edu/~yliang/TEProf3/teprof3-logo-zip-file/png/logo-no-background_new.png" width="300px"/>
 </div>
 
-# TEProf3
 **TEProf3 (TE-derived Promoter Finder 3)** is a user-friendly, one-command tool for identifying transposable element **(TE)-derived promoters and their resulting transcripts**. It supports transcriptomic data from different modalities, including **short-read RNA-seq**, **long-read RNA-seq**, and **single-cell RNA-seq** datasets.
 
 Thank you for using TEProf3! If you use this tool in your research, please cite the following publication:
