@@ -122,7 +122,7 @@ teprof3 --hervannotation HERV.gtf
 
 ```
 # download S1 File. Annotation of HERV elements from 60 subfamilies in reference genome hg38
-wget http://l1base.charite.de/BED/hsflnil1_8438_rm.bed
+wget https://l1base.charite.de/BED/hsflnil1_8438_rm.bed
 ln -s hsflnil1_8438_rm.bed LINE1.bed
 ```
 
